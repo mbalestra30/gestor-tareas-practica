@@ -1,0 +1,11 @@
+# Compilación de Maven
+target/
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Datos locales que genera la aplicación
+tareas.csv
+data/
