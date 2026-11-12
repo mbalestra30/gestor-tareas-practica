@@ -2,13 +2,24 @@
 
 Vamos a construir el programa de a poco. Cada ejercicio parte del anterior.
 
+| Ejercicio | Dónde |
+|---|---|
+| 1. El menú | En la charla, juntos |
+| 2. La clase Tarea | En la charla, juntos |
+| 3. Separar en capas | En la charla, juntos |
+| 4. Java moderno | **De tarea** |
+| 5. Guardar en un archivo | **De tarea** |
+
+Antes de empezar, seguí los pasos del [README](README.md): fork, clonar tu fork y crear la rama `charla1-ejercicios`.
+
 **Cómo seguir esta guía:**
 - Hacé los pasos **en orden**. Cada uno dice en qué archivo trabajar, dónde escribir y qué código poner.
 - Escribí el código vos (no lo copies y pegues): así se aprende.
 - Después de los pasos que dicen **▶ Probalo**, corré el programa (▶ verde al lado de `main` en `Main.java`)
   y fijate que pase lo que dice.
-- Al terminar cada ejercicio, hacé un commit en tu rama.
-- **¿Te trabaste?** En la rama `charla1-solucion` hay un commit por ejercicio con la solución.
+- Al terminar cada ejercicio, hacé un commit en tu rama, y cuando quieras, push a tu fork.
+- **¿Te trabaste?** En el repositorio original, la rama `charla1-solucion` tiene un commit por ejercicio
+  con la solución (ver "¿Te trabaste?" en el README).
 
 **Atajos útiles de IntelliJ:**
 - Si algo queda en rojo porque falta un `import`, poné el cursor encima y apretá **Alt+Enter → Import class**.
@@ -18,10 +29,37 @@ Vamos a construir el programa de a poco. Cada ejercicio parte del anterior.
 
 ## Ejercicio 1: el menú
 
-**Qué vas a aprender:** do-while · switch · arreglos · métodos · sobrecarga
+### Qué queremos lograr
 
-**Cómo arrancás:** el programa muestra el menú una vez, lee un número y termina.
-**Cómo terminás:** el menú se repite, podés agregar tareas y listarlas, y sale con 0.
+Hoy el programa muestra el menú **una sola vez**, lee un número, dice "Elegiste la opción X" y termina.
+El menú está dibujado, pero no hace nada.
+
+Queremos que sea un menú de verdad:
+- que **se repita** hasta que el usuario elija `0`;
+- que la opción `1` **agregue** una tarea (por ahora, solo un título) y la `2` las **liste**;
+- que el código quede **ordenado en métodos**, uno por cada cosa que hace el programa;
+- que **valide** lo que escribe el usuario (título vacío, lista llena).
+
+Así se va a ver al terminar:
+
+```
+=== Gestor de tareas ===
+1. Agregar tarea
+2. Listar tareas
+0. Salir
+Elegí una opción: 1
+Título: Estudiar Java
+Tarea agregada
+
+=== Gestor de tareas ===
+...
+Elegí una opción: 2
+1. Estudiar Java
+Elegí una opción: 0
+¡Hasta luego!
+```
+
+**Qué vas a usar:** do-while · switch · arreglos · métodos · sobrecarga
 
 ### Paso 1: repetir el menú con un do-while
 
@@ -230,10 +268,34 @@ git commit -m "Ejercicio 1: menú con do-while y switch"
 
 ## Ejercicio 2: la clase Tarea y las colecciones
 
-**Qué vas a aprender:** clases · encapsulamiento · constructores · `toString` · `HashMap` · `ArrayList` · for-each
+### Qué queremos lograr
 
-**Cómo terminás:** cada tarea tiene un id y se puede marcar como hecha; hay opciones para completar,
-eliminar y buscar.
+Hasta ahora una tarea es solo un texto. Pero una tarea tiene más datos: un **número que la identifica**
+(id) y si **ya está hecha** o no. Para eso vamos a crear nuestra propia clase, `Tarea`.
+
+Además, el arreglo tiene dos problemas: entran solo 10 tareas, y para encontrar una hay que recorrerlas
+todas. Lo vamos a cambiar por un `HashMap`, que crece solo y encuentra una tarea por su id al instante.
+
+Con eso sumamos tres opciones al menú: **completar**, **eliminar** y **buscar**.
+
+Así se va a ver al terminar:
+
+```
+Elegí una opción: 1
+Título: Estudiar Java
+Tarea agregada con id 1
+Elegí una opción: 3
+Id de la tarea: 1
+Tarea completada
+Elegí una opción: 2
+[x] 1 - Estudiar Java
+[ ] 2 - Practicar Git
+Elegí una opción: 5
+Texto a buscar: git
+[ ] 2 - Practicar Git
+```
+
+**Qué vas a usar:** clases · encapsulamiento · constructores · `toString` · `HashMap` · `ArrayList` · for-each
 
 ### Paso 1: crear la clase Tarea
 
@@ -497,12 +559,35 @@ git commit -m "Ejercicio 2: clase Tarea, HashMap y ArrayList"
 
 ## Ejercicio 3: separar en capas con una interfaz
 
-**Qué vas a aprender:** interfaces · abstracción · polimorfismo · herencia · excepciones · paquetes
+### Qué queremos lograr
 
-**Cómo terminás:** el programa funciona igual que en el ejercicio 2, pero ordenado en tres partes:
-- `TareaRepository`: **dónde** se guardan las tareas.
-- `TareaService`: **las reglas** (por ejemplo, que el título no puede estar vacío).
-- `Main`: solo muestra el menú y lee lo que escribe el usuario.
+El programa ya funciona, pero `Main` hace **todo**: muestra el menú, tiene las reglas (por ejemplo, "el título
+no puede estar vacío") y además guarda las tareas en el `HashMap`. Si mañana queremos guardar las tareas en
+un archivo o en una base de datos, o cambiar el menú por una página web, hay que tocar todo `Main`.
+
+Por eso los programas profesionales se separan en **capas**, cada una con una sola responsabilidad:
+
+| Capa | Qué hace | Clase |
+|---|---|---|
+| Presentación | Muestra el menú y lee lo que escribe el usuario | `Main` |
+| Servicio | Tiene las reglas del negocio | `TareaService` |
+| Repositorio | Guarda y busca las tareas | `TareaRepository` (interfaz) y `TareaRepositoryEnMemoria` |
+
+```
+Main  ──usa──▶  TareaService  ──usa──▶  TareaRepository  ◀──implementa──  TareaRepositoryEnMemoria
+```
+
+La clave es la **interfaz** `TareaRepository`: el service usa la interfaz, no sabe si las tareas están en
+memoria, en un archivo o en una base de datos. Así se puede cambiar dónde se guardan sin tocar nada más
+(lo vas a hacer en el ejercicio 5).
+
+**Al terminar, el programa funciona exactamente igual que en el ejercicio 2**: el cambio está en cómo
+está organizado el código, no en lo que hace.
+
+> Este ejercicio es la base de las próximas charlas: en la charla 2, Spring va a usar esta misma interfaz,
+> y en la charla 3, Spring Data la va a implementar solo.
+
+**Qué vas a usar:** interfaces · abstracción · polimorfismo · herencia · excepciones · paquetes
 
 ### Paso 1: la interfaz TareaRepository
 
@@ -817,18 +902,54 @@ git commit -m "Ejercicio 3: capas con una interfaz"
 
 ---
 
-## Ejercicio 4: Java moderno
+## Ejercicio 4 (tarea): Java moderno
 
-**Qué vas a aprender:** `record` · switch con flechas · streams · `var` · text blocks · pattern matching
+### Qué queremos lograr
 
-**Cómo terminás:** el programa funciona igual, con menos código, y suma la opción 6 "Ver pendientes".
+Desde Java 10 se sumaron herramientas para escribir **menos código y más claro**. En este ejercicio las
+aplicamos al gestor:
+
+| Herramienta | Para qué sirve | Dónde la usamos |
+|---|---|---|
+| `record` | Una clase de datos en una línea | `Tarea` |
+| switch con flechas | Un switch sin `break` | El menú |
+| Streams | Filtrar una lista sin escribir el `for` | Buscar y ver pendientes |
+| `var` | No repetir el tipo cuando es obvio | Variables locales |
+| Text block | Un texto de varias líneas | El menú |
+| Pattern matching | Chequear el tipo y convertirlo en un paso | Mostrar errores |
+
+**Al terminar**, el programa hace lo mismo que antes y suma una opción nueva, **6. Ver pendientes**:
+
+```
+Elegí una opción: 6
+[ ] 2 - Practicar Git
+[ ] 3 - Preparar la charla
+```
+
+Si un número no existe, el mensaje de error es más claro:
+
+```
+Elegí una opción: 3
+Id de la tarea: 99
+No existe la tarea 99. Revisá la lista con la opción 2.
+```
+
+**Qué vas a usar:** `record` · switch con flechas · streams · `var` · text blocks · pattern matching
+
+> Este ejercicio queda **de tarea**. Hacelo con calma: cada paso explica qué hace cada línea.
+> Corré el programa cada vez que dice **▶ Probalo**: si algo falla, sabés que fue en el último paso.
 
 ### Paso 1: Tarea pasa a ser un record
 
-Un **record** es una clase de datos en una línea: Java genera solo el constructor, los getters,
-`equals` y `hashCode`. Es **inmutable**: no se puede modificar, así que para "cambiar" una tarea se crea otra.
+**Por qué:** la clase `Tarea` tiene 40 líneas, y casi todas son "de relleno": el constructor que copia los
+parámetros a los atributos y un getter por atributo. Un **record** hace todo eso solo.
 
-Reemplazá **todo** `Tarea.java` por:
+Un record:
+- se declara con los datos entre paréntesis: `record Tarea(Long id, String titulo, boolean hecha)`;
+- genera solo el constructor, un getter por dato, `equals`, `hashCode` y `toString`;
+- es **inmutable**: una vez creado no se puede cambiar. Para "cambiar" una tarea, se crea otra.
+
+Abrí `model/Tarea.java`, **borrá todo** y escribí:
 
 ```java
 package com.curso.tareas.model;
@@ -854,20 +975,30 @@ public record Tarea(Long id, String titulo, boolean hecha) {
 }
 ```
 
-- `completada()` reemplaza a `completar()`: en vez de cambiar la tarea, **devuelve una copia** hecha.
-- `conId(...)` devuelve una copia con otro id (la vamos a usar en el repositorio).
+Qué hace cada parte:
+- **`public Tarea(Long id, String titulo)`**: un constructor extra, para crear tareas nuevas sin decir si
+  están hechas. `this(id, titulo, false)` llama al constructor que genera el record, con `hecha` en `false`.
+- **`completada()`** reemplaza a `completar()`. Como el record no se puede modificar, no "marca" la tarea:
+  **devuelve una tarea nueva** igual, pero con `hecha` en `true`.
+- **`conId(...)`** devuelve una copia con otro id. La va a usar el repositorio para asignarle el id a una tarea nueva.
+- **`toString()`**: el record ya trae uno, pero muestra `Tarea[id=1, titulo=...]`. Lo sobrescribimos para que se
+  siga viendo como antes.
 
 ### Paso 2: arreglar los errores que marca IntelliJ
 
-Ahora hay errores en rojo: en un record los getters **no** llevan `get`. El compilador te guía:
+Ahora aparecen errores en rojo en otros archivos. Es normal: en un record, los getters **no** llevan `get`
+ni `is`. Se llaman igual que el dato:
 
-| Antes | Ahora |
+| Antes (clase) | Ahora (record) |
 |---|---|
-| `getId()` | `id()` |
-| `getTitulo()` | `titulo()` |
-| `isHecha()` | `hecha()` |
+| `tarea.getId()` | `tarea.id()` |
+| `tarea.getTitulo()` | `tarea.titulo()` |
+| `tarea.isHecha()` | `tarea.hecha()` |
 
-**2.1** En `TareaRepositoryEnMemoria`, el método `save` queda:
+> El compilador te guía: andá archivo por archivo arreglando cada rojo. Para ver todos los errores juntos:
+> **Build → Build Project** (Ctrl+F9).
+
+**2.1** En `repository/TareaRepositoryEnMemoria.java`, el método `save` queda así:
 
 ```java
 @Override
@@ -881,11 +1012,14 @@ public Tarea save(Tarea tarea) {
 }
 ```
 
-y en `findAll`, cambiá `a.getId().compareTo(b.getId())` por `a.id().compareTo(b.id())`.
+Antes creábamos la tarea con `new Tarea(proximoId, tarea.getTitulo())`. Ahora usamos `conId`, que copia
+todos los datos y solo cambia el id.
 
-**2.2** En `TareaService`:
-- en `buscar`, cambiá `tarea.getTitulo()` por `tarea.titulo()`.
-- el método `completar` queda:
+En `findAll` del mismo archivo, cambiá `a.getId().compareTo(b.getId())` por `a.id().compareTo(b.id())`.
+
+**2.2** En `service/TareaService.java`:
+- en `buscar`, cambiá `tarea.getTitulo()` por `tarea.titulo()`;
+- el método `completar` queda así:
 
 ```java
 public Tarea completar(Long id) {
@@ -894,13 +1028,19 @@ public Tarea completar(Long id) {
 }
 ```
 
-**2.3** En `Main`, en `agregarTarea()`, cambiá `tarea.getId()` por `tarea.id()`.
+Antes hacíamos `tarea.completar()` (que cambiaba la tarea) y después `save`. Ahora `tarea.completada()`
+devuelve **otra** tarea, hecha, y esa es la que guardamos. Como tiene el mismo id, `save` reemplaza la vieja.
 
-**▶ Probalo:** todo funciona igual que antes.
+**2.3** En `Main.java`, en `agregarTarea()`, cambiá `tarea.getId()` por `tarea.id()`.
+
+**▶ Probalo:** agregá, completá y listá: todo funciona igual que antes.
 
 ### Paso 3: switch con flechas
 
-En `main`, reemplazá el `switch` entero por esta forma nueva, que no necesita `break`:
+**Por qué:** en el switch clásico, si te olvidás un `break`, el programa sigue de largo y ejecuta el `case`
+de abajo. Es un error muy común. El switch con flechas (Java 14+) no tiene ese problema.
+
+En `main` de `Main.java`, reemplazá el `switch` entero (desde `switch (opcion) {` hasta su `}`) por:
 
 ```java
 switch (opcion) {
@@ -914,11 +1054,16 @@ switch (opcion) {
 }
 ```
 
-Con flechas no se puede "caer" al caso siguiente: es la forma recomendada hoy.
+Cada `case` ejecuta **solo** lo que está a la derecha de la flecha. No hace falta `break`.
+
+**▶ Probalo:** todas las opciones del menú funcionan igual.
 
 ### Paso 4: streams en el service
 
-**4.1** En `TareaService`, reemplazá el método `buscar` por:
+**Por qué:** muchas veces recorremos una lista con un `for` para quedarnos con algunos elementos. Un
+**stream** hace eso en una sola expresión, que se lee casi como una frase.
+
+**4.1** En `service/TareaService.java`, reemplazá el método `buscar` por:
 
 ```java
 public List<Tarea> buscar(String texto) {
@@ -929,11 +1074,15 @@ public List<Tarea> buscar(String texto) {
 }
 ```
 
-Un **stream** encadena pasos: de todas las tareas, `filter` deja pasar las que contienen el texto,
-y `toList()` las junta en una lista. Hace lo mismo que el `for` con el `if`, en menos líneas.
-`var` deja que Java deduzca el tipo (acá, `String`).
+Leelo así, línea por línea:
+1. `repository.findAll().stream()`: "de todas las tareas…"
+2. `.filter(tarea -> ...)`: "…quedate con las que cumplen esta condición…" (la condición es una lambda: dada
+   una tarea, ¿su título contiene el texto?)
+3. `.toList()`: "…y juntalas en una lista".
 
-**4.2** Debajo de `buscar`, agregá:
+Es lo mismo que el `for` con el `if` de antes, sin crear la lista a mano.
+
+**4.2** Debajo de `buscar`, agregá un método nuevo para las tareas pendientes:
 
 ```java
 public List<Tarea> pendientes() {
@@ -943,35 +1092,47 @@ public List<Tarea> pendientes() {
 }
 ```
 
-Si ya no se usa, borrá el `import java.util.ArrayList;` del service (IntelliJ lo muestra en gris).
+`!tarea.hecha()` significa "no está hecha". El `!` niega.
+
+**4.3** Arriba de todo, el `import java.util.ArrayList;` quedó en gris porque ya no se usa: borralo.
 
 ### Paso 5: opción 6, ver pendientes
 
-**5.1** En `mostrarMenu()`, debajo de `"5. Buscar tareas"`, agregá:
+**5.1** En `mostrarMenu()` de `Main.java`, debajo de `"5. Buscar tareas"`, agregá:
 
 ```java
 System.out.println("6. Ver pendientes");
 ```
 
-**5.2** En el `switch`, debajo del `case 5`, agregá:
+**5.2** En el `switch`, debajo de `case 5 -> buscarTareas();`, agregá:
 
 ```java
 case 6 -> mostrar(service.pendientes());
 ```
 
-**▶ Probalo:** agregá tres tareas, completá una y usá la opción 6: aparecen solo las otras dos.
+`mostrar(...)` es el método que ya teníamos para imprimir una lista de tareas.
+
+**▶ Probalo:** agregá tres tareas, completá una y elegí la opción 6: aparecen solo las otras dos.
 
 ### Paso 6: var
 
-`var` sirve cuando el tipo es obvio por lo que está a la derecha del `=`. Cambiá:
-- en `agregarTarea()` de `Main`: `Tarea tarea = ...` por `var tarea = ...`
-- en `completar` del service: `Tarea tarea = buscarPorId(id);` por `var tarea = buscarPorId(id);`
+**Por qué:** cuando el tipo es obvio por lo que está a la derecha del `=`, repetirlo a la izquierda no
+suma nada. Con `var`, Java lo deduce solo. **Sigue siendo una variable con tipo**: no se puede guardar
+otra cosa después.
+
+Cambiá estas dos líneas:
+- en `agregarTarea()` de `Main.java`: `Tarea tarea = service.crear(...)` → `var tarea = service.crear(...)`
+- en `completar` de `TareaService.java`: `Tarea tarea = buscarPorId(id);` → `var tarea = buscarPorId(id);`
+
+> `var` solo se usa para **variables locales** (adentro de un método). Los atributos de la clase y los
+> parámetros llevan el tipo escrito.
 
 ### Paso 7: el menú en un text block
 
-Un **text block** es un texto de varias líneas entre `"""`.
+**Por qué:** el menú son 9 `println` seguidos. Un **text block** (Java 15+) es un texto de varias líneas
+escrito tal cual, entre tres comillas `"""`.
 
-**7.1** En `Main`, arriba del `scanner`, agregá:
+**7.1** En `Main.java`, arriba de la línea del `scanner`, agregá:
 
 ```java
 private static final String MENU = """
@@ -986,17 +1147,27 @@ private static final String MENU = """
         0. Salir""";
 ```
 
+- El texto empieza en la línea de abajo de las `"""`. La línea vacía del principio hace el mismo salto de
+  línea que el `System.out.println();` de antes.
+- Java le saca la sangría de la izquierda, así que se imprime pegado al borde.
+- `static final` porque es una constante: es la misma para todo el programa y no cambia.
+
 **7.2** En `main`, cambiá `mostrarMenu();` por:
 
 ```java
 System.out.println(MENU);
 ```
 
-**7.3** Borrá el método `mostrarMenu()`: ya no se usa.
+**7.3** Borrá el método `mostrarMenu()` entero: ya no se usa (IntelliJ lo muestra en gris).
+
+**▶ Probalo:** el menú se ve igual que antes.
 
 ### Paso 8: pattern matching al mostrar errores
 
-**8.1** Debajo del método `mostrar(...)`, agregá:
+**Por qué:** cuando atrapamos una excepción, a veces queremos hacer algo distinto según **qué tipo** de
+error es. El **pattern matching** (Java 16+) chequea el tipo y, en el mismo paso, te da una variable de ese tipo.
+
+**8.1** En `Main.java`, debajo del método `mostrar(...)`, agregá:
 
 ```java
 private static void mostrarError(RuntimeException e) {
@@ -1010,10 +1181,22 @@ private static void mostrarError(RuntimeException e) {
 }
 ```
 
-`e instanceof TareaNoEncontradaException noEncontrada` chequea el tipo y, si coincide, ya te deja usar
-`noEncontrada` con ese tipo, sin hacer un casting. Eso es **pattern matching**.
+Qué hace:
+- `e instanceof TareaNoEncontradaException noEncontrada` pregunta "¿`e` es una `TareaNoEncontradaException`?".
+  Si es así, crea la variable `noEncontrada` ya con ese tipo, y podemos usar `noEncontrada.getId()`.
+  Antes de Java 16 había que escribir aparte un casting: `TareaNoEncontradaException n = (TareaNoEncontradaException) e;`.
+- Si es una `IllegalArgumentException` (el título vacío), muestra su mensaje.
+- Si es cualquier otro error, lo vuelve a lanzar con `throw e`: un error que no esperábamos no se esconde.
 
-**8.2** En `main`, cambiá el `catch` por:
+**8.2** En `main`, cambiá el `catch`:
+
+```java
+} catch (IllegalArgumentException | TareaNoEncontradaException e) {
+    System.out.println(e.getMessage());
+}
+```
+
+por:
 
 ```java
 } catch (RuntimeException e) {
@@ -1021,7 +1204,10 @@ private static void mostrarError(RuntimeException e) {
 }
 ```
 
-**▶ Probalo:** completá un id que no existe: aparece "No existe la tarea 99. Revisá la lista con la opción 2."
+Ahora atrapamos cualquier `RuntimeException` y `mostrarError` decide qué hacer según el tipo.
+
+**▶ Probalo:** completá la tarea 99 (no existe): aparece "No existe la tarea 99. Revisá la lista con la opción 2."
+Agregá una tarea con el título vacío: aparece "El título no puede estar vacío".
 
 ### Commit
 
@@ -1032,19 +1218,199 @@ git commit -m "Ejercicio 4: Java moderno"
 
 ---
 
-## Ejercicio 5 (si te da el tiempo, o de tarea): guardar en un archivo
+## Ejercicio 5 (tarea): guardar en un archivo
 
-**Qué vas a aprender:** try-with-resources · manejo de errores · polimorfismo
+### Qué queremos lograr
 
-**Cómo terminás:** las tareas se guardan en un archivo `tareas.csv` y siguen ahí al cerrar el programa.
+Hoy las tareas viven en un `HashMap`, en la memoria: **cuando cerrás el programa, se pierden**.
+Queremos guardarlas en un archivo de texto, `tareas.csv`, para que sigan ahí la próxima vez.
 
-### Paso 1: el repositorio de archivo
+Acá se ve la ventaja de haber separado en capas en el ejercicio 3: vamos a crear **otra implementación**
+de la misma interfaz `TareaRepository`, que en vez de un `HashMap` usa un archivo. El service y el menú
+**no se tocan**: en `Main` cambia **una sola línea**.
 
-En `repository`, creá la clase `TareaRepositoryArchivo`:
+```
+                          ┌─▶ TareaRepositoryEnMemoria   (HashMap: se pierde al cerrar)
+TareaService ──usa──▶ TareaRepository
+                          └─▶ TareaRepositoryArchivo     (tareas.csv: queda guardado)
+```
+
+El archivo va a tener una línea por tarea, con el formato `id;hecha;titulo`:
+
+```
+1;true;Estudiar Java
+2;false;Practicar Git
+```
+
+**Al terminar:** agregás tareas, cerrás el programa, lo volvés a abrir, listás… y siguen ahí.
+
+**Qué vas a usar:** archivos · try-with-resources · manejo de errores · polimorfismo
+
+> Este ejercicio queda **de tarea**. Es el más largo: la clase nueva se arma en partes, y cada parte explica qué hace.
+
+### Paso 1: crear la clase y declarar que implementa la interfaz
+
+En el paquete `repository`, creá la clase `TareaRepositoryArchivo` y escribí:
 
 ```java
 package com.curso.tareas.repository;
 
+import com.curso.tareas.model.Tarea;
+
+import java.nio.file.Path;
+
+public class TareaRepositoryArchivo implements TareaRepository {
+
+    private final Path archivo;
+
+    public TareaRepositoryArchivo(Path archivo) {
+        this.archivo = archivo;
+    }
+}
+```
+
+- `Path` representa la ruta de un archivo. Se la pasamos en el constructor, así la misma clase sirve para
+  cualquier archivo.
+- La línea de la clase queda en rojo: dice que implementa `TareaRepository` pero todavía no tiene sus métodos.
+  Lo arreglamos en el paso 4.
+
+### Paso 2: leer todas las tareas del archivo
+
+**Por qué:** todos los métodos del repositorio van a necesitar leer el archivo. Escribimos esa lógica
+**una sola vez**, en un método privado.
+
+Adentro de la clase, debajo del constructor, agregá:
+
+```java
+private List<Tarea> leerTodas() {
+    if (!Files.exists(archivo)) {
+        return List.of();
+    }
+    var tareas = new ArrayList<Tarea>();
+    try (BufferedReader reader = Files.newBufferedReader(archivo, StandardCharsets.UTF_8)) {
+        String linea;
+        while ((linea = reader.readLine()) != null) {
+            if (!linea.isBlank()) {
+                String[] partes = linea.split(";", 3);
+                tareas.add(new Tarea(Long.parseLong(partes[0]), partes[2], Boolean.parseBoolean(partes[1])));
+            }
+        }
+    } catch (IOException e) {
+        throw new UncheckedIOException("No se pudo leer " + archivo, e);
+    }
+    tareas.sort(Comparator.comparing(Tarea::id));
+    return tareas;
+}
+```
+
+Paso a paso:
+1. Si el archivo todavía no existe (la primera vez que corrés el programa), devuelve una lista vacía.
+2. **`try (BufferedReader reader = ...)`** es un **try-with-resources**: abre el archivo para leerlo, y
+   cuando termina el bloque **lo cierra solo**, aunque haya un error. Sin esto habría que acordarse de
+   llamar a `reader.close()` en un `finally`.
+3. `reader.readLine()` lee una línea; cuando no hay más, devuelve `null` y el `while` termina.
+4. `linea.split(";", 3)` corta `"1;true;Estudiar Java"` en `["1", "true", "Estudiar Java"]`. El `3` dice
+   "como máximo 3 partes", así un título con `;` adentro no se rompe.
+5. `Long.parseLong` y `Boolean.parseBoolean` convierten el texto a número y a boolean.
+6. Si falla la lectura (`IOException`), la envolvemos en `UncheckedIOException`, que es una `RuntimeException`
+   (así no hay que declararla en cada método).
+7. Al final ordenamos por id: `Comparator.comparing(Tarea::id)` es "comparar por id".
+   `Tarea::id` es una **referencia a método**: lo mismo que la lambda `tarea -> tarea.id()`.
+
+Van a aparecer varias cosas en rojo por los imports: andá una por una con **Alt+Enter → Import class**
+(en el paso 5 está la lista completa).
+
+### Paso 3: escribir todas las tareas en el archivo
+
+Debajo de `leerTodas`, agregá:
+
+```java
+private void escribirTodas(List<Tarea> tareas) {
+    try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
+        for (Tarea tarea : tareas) {
+            writer.write(tarea.id() + ";" + tarea.hecha() + ";" + tarea.titulo());
+            writer.newLine();
+        }
+    } catch (IOException e) {
+        throw new UncheckedIOException("No se pudo escribir " + archivo, e);
+    }
+}
+```
+
+- Otra vez **try-with-resources**, ahora para escribir: el archivo se cierra solo al terminar.
+- `newBufferedWriter` crea el archivo si no existe, y si existe lo **reemplaza** entero.
+- Por cada tarea escribe una línea `id;hecha;titulo` y un salto de línea (`newLine()`).
+
+> La estrategia es simple: cada vez que algo cambia, leemos todas las tareas, hacemos el cambio en la lista
+> y volvemos a escribir el archivo completo. Para un programa chico alcanza; una base de datos (charla 3) lo hace mejor.
+
+### Paso 4: los métodos de la interfaz
+
+Poné el cursor en la línea `public class TareaRepositoryArchivo implements TareaRepository` y apretá
+**Alt+Enter → Implement methods → OK**. IntelliJ agrega los 5 métodos vacíos debajo del constructor.
+Completalos así:
+
+```java
+@Override
+public List<Tarea> findAll() {
+    return leerTodas();
+}
+
+@Override
+public Optional<Tarea> findById(Long id) {
+    return leerTodas().stream()
+            .filter(tarea -> tarea.id().equals(id))
+            .findFirst();
+}
+
+@Override
+public Tarea save(Tarea tarea) {
+    var tareas = new ArrayList<>(leerTodas());
+    if (tarea.id() == null) {
+        long proximoId = tareas.stream().mapToLong(Tarea::id).max().orElse(0) + 1;
+        tarea = tarea.conId(proximoId);
+    } else {
+        Long id = tarea.id();
+        tareas.removeIf(existente -> existente.id().equals(id));
+    }
+    tareas.add(tarea);
+    escribirTodas(tareas);
+    return tarea;
+}
+
+@Override
+public void deleteById(Long id) {
+    var tareas = new ArrayList<>(leerTodas());
+    tareas.removeIf(tarea -> tarea.id().equals(id));
+    escribirTodas(tareas);
+}
+
+@Override
+public boolean existsById(Long id) {
+    return findById(id).isPresent();
+}
+```
+
+Qué hace cada uno:
+- **`findAll`**: devuelve lo que hay en el archivo.
+- **`findById`**: un stream que se queda con la tarea de ese id. `findFirst()` devuelve un `Optional`:
+  la tarea, o vacío si no está. Los ids se comparan con `equals`, no con `==`, porque son objetos `Long`.
+- **`save`** tiene dos casos:
+  - **tarea nueva** (`id` en `null`): busca el id más alto del archivo y le suma 1
+    (`mapToLong(Tarea::id).max().orElse(0) + 1`; si no hay tareas, el primero es 1);
+  - **tarea que ya existe** (por ejemplo, al completarla): saca la versión vieja de la lista con `removeIf`.
+
+  En los dos casos agrega la tarea a la lista y escribe el archivo.
+- **`deleteById`**: saca la tarea de la lista y vuelve a escribir el archivo.
+- **`existsById`**: usa `findById` y pregunta si encontró algo.
+
+> `new ArrayList<>(leerTodas())` hace una **copia modificable** de la lista, porque vamos a agregar y sacar tareas.
+
+### Paso 5: revisar los imports
+
+Arriba de todo, los imports tienen que quedar así (si te falta alguno, **Alt+Enter** sobre lo que está en rojo):
+
+```java
 import com.curso.tareas.model.Tarea;
 
 import java.io.BufferedReader;
@@ -1058,114 +1424,40 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-
-public class TareaRepositoryArchivo implements TareaRepository {
-
-    private final Path archivo;
-
-    public TareaRepositoryArchivo(Path archivo) {
-        this.archivo = archivo;
-    }
-
-    @Override
-    public List<Tarea> findAll() {
-        return leerTodas();
-    }
-
-    @Override
-    public Optional<Tarea> findById(Long id) {
-        return leerTodas().stream()
-                .filter(tarea -> tarea.id().equals(id))
-                .findFirst();
-    }
-
-    @Override
-    public Tarea save(Tarea tarea) {
-        var tareas = new ArrayList<>(leerTodas());
-        if (tarea.id() == null) {
-            long proximoId = tareas.stream().mapToLong(Tarea::id).max().orElse(0) + 1;
-            tarea = tarea.conId(proximoId);
-        } else {
-            Long id = tarea.id();
-            tareas.removeIf(existente -> existente.id().equals(id));
-        }
-        tareas.add(tarea);
-        escribirTodas(tareas);
-        return tarea;
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        var tareas = new ArrayList<>(leerTodas());
-        tareas.removeIf(tarea -> tarea.id().equals(id));
-        escribirTodas(tareas);
-    }
-
-    @Override
-    public boolean existsById(Long id) {
-        return findById(id).isPresent();
-    }
-
-    private List<Tarea> leerTodas() {
-        if (!Files.exists(archivo)) {
-            return List.of();
-        }
-        var tareas = new ArrayList<Tarea>();
-        try (BufferedReader reader = Files.newBufferedReader(archivo, StandardCharsets.UTF_8)) {
-            String linea;
-            while ((linea = reader.readLine()) != null) {
-                if (!linea.isBlank()) {
-                    String[] partes = linea.split(";", 3);
-                    tareas.add(new Tarea(Long.parseLong(partes[0]), partes[2], Boolean.parseBoolean(partes[1])));
-                }
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("No se pudo leer " + archivo, e);
-        }
-        tareas.sort(Comparator.comparing(Tarea::id));
-        return tareas;
-    }
-
-    private void escribirTodas(List<Tarea> tareas) {
-        try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
-            for (Tarea tarea : tareas) {
-                writer.write(tarea.id() + ";" + tarea.hecha() + ";" + tarea.titulo());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("No se pudo escribir " + archivo, e);
-        }
-    }
-}
 ```
 
-- Cada tarea es una línea del archivo con el formato `id;hecha;titulo`. Por ejemplo: `1;false;Estudiar Java`.
-- `try (BufferedReader reader = ...)` es **try-with-resources**: el archivo se cierra solo al salir del bloque,
-  aunque haya un error.
-- `split(";", 3)` corta la línea en 3 partes como máximo, así el título puede tener `;` adentro.
+Si no queda nada en rojo, la clase está completa. Comparala con la del commit "Ejercicio 5" de `charla1-solucion`.
 
-### Paso 2: cambiar una sola línea en Main
+### Paso 6: cambiar una sola línea en Main
 
-En `Main.java`, cambiá la línea del service:
+En `Main.java`, buscá la línea que crea el service:
 
 ```java
 private static final TareaService service = new TareaService(new TareaRepositoryEnMemoria());
 ```
 
-por:
+y cambiala por:
 
 ```java
 private static final TareaService service =
         new TareaService(new TareaRepositoryArchivo(Path.of("tareas.csv")));
 ```
 
-y arreglá los imports: agregá `TareaRepositoryArchivo` y `java.nio.file.Path`, y borrá el de `TareaRepositoryEnMemoria`.
+Arreglá los imports de `Main`: agregá `com.curso.tareas.repository.TareaRepositoryArchivo` y
+`java.nio.file.Path`, y borrá el de `TareaRepositoryEnMemoria` (queda en gris).
 
-El service y el menú **no cambian**: reciben cualquier cosa que cumpla la interfaz `TareaRepository`.
-Eso es **polimorfismo**.
+**Esto es polimorfismo:** `TareaService` recibe un `TareaRepository`. No le importa si es el de memoria o el
+de archivo: los dos cumplen el mismo contrato. Por eso el service y el menú no cambiaron ni una línea.
 
-**▶ Probalo:** agregá tareas, salí con `0`, volvé a correr el programa y listá: las tareas siguen ahí.
-El archivo `tareas.csv` aparece en la carpeta del proyecto.
+`Path.of("tareas.csv")` es un archivo en la carpeta del proyecto.
+
+**▶ Probalo:**
+1. Agregá dos tareas y completá una.
+2. Salí con `0`.
+3. Mirá el panel de la izquierda: apareció `tareas.csv`. Abrilo: tiene una línea por tarea.
+4. Volvé a correr el programa y listá (opción 2): **las tareas siguen ahí**.
+
+> `tareas.csv` está en el `.gitignore`, así que no se sube a GitHub: son datos de tu compu, no código.
 
 ### Commit
 
@@ -1176,8 +1468,14 @@ git commit -m "Ejercicio 5: guardar en archivo"
 
 ---
 
-## Al final: subí tu rama
+## Al final: subí tu trabajo a tu fork
 
 ```bash
-git push -u origin charla1-jp     # con tus iniciales
+git push -u origin charla1-ejercicios     # la primera vez; después alcanza con git push
 ```
+
+O en IntelliJ: **Ctrl+Shift+K → Push**.
+
+Entrá a tu fork en GitHub, elegí la rama `charla1-ejercicios` en el desplegable y fijate que estén tus commits.
+Si querés que el tutor lo vea, pasale el link:
+`https://github.com/<tu-usuario>/gestor-tareas-practica/tree/charla1-ejercicios`
