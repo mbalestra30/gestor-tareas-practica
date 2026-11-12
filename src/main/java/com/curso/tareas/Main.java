@@ -1,11 +1,11 @@
 package com.curso.tareas;
 
 import com.curso.tareas.model.Tarea;
+import com.curso.tareas.repository.TareaRepositoryEnMemoria;
+import com.curso.tareas.service.TareaNoEncontradaException;
+import com.curso.tareas.service.TareaService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -16,36 +16,38 @@ public class Main {
 
     private static final Scanner scanner = new Scanner(System.in);
 
-    private static final Map<Long, Tarea> tareas = new HashMap<>();
-    private static long proximoId = 1;
+    private static final TareaService service = new TareaService(new TareaRepositoryEnMemoria());
 
     public static void main(String[] args) {
         int opcion;
         do {
             mostrarMenu();
             opcion = leerEntero("Elegí una opción: ");
-
-            switch (opcion) {
-                case 1:
-                    agregarTarea();
-                    break;
-                case 2:
-                    listarTareas();
-                    break;
-                case 3:
-                    completarTarea();
-                    break;
-                case 4:
-                    eliminarTarea();
-                    break;
-                case 5:
-                    buscarTareas();
-                    break;
-                case 0:
-                    System.out.println("¡Hasta luego!");
-                    break;
-                default:
-                    System.out.println("Opción inválida");
+            try {
+                switch (opcion) {
+                    case 1:
+                        agregarTarea();
+                        break;
+                    case 2:
+                        listarTareas();
+                        break;
+                    case 3:
+                        completarTarea();
+                        break;
+                    case 4:
+                        eliminarTarea();
+                        break;
+                    case 5:
+                        buscarTareas();
+                        break;
+                    case 0:
+                        System.out.println("¡Hasta luego!");
+                        break;
+                    default:
+                        System.out.println("Opción inválida");
+                }
+            } catch (IllegalArgumentException | TareaNoEncontradaException e) {
+                System.out.println(e.getMessage());
             }
         } while (opcion != 0);
     }
@@ -62,66 +64,37 @@ public class Main {
     }
 
     private static void agregarTarea() {
-        String titulo = leerTexto("Título: ");
-        agregarTarea(titulo);
-    }
-
-    private static void agregarTarea(String titulo) {
-        if (titulo.isEmpty()) {
-            System.out.println("El título no puede estar vacío");
-            return;
-        }
-        Tarea tarea = new Tarea(proximoId, titulo);
-        tareas.put(tarea.getId(), tarea);
-        proximoId++;
+        Tarea tarea = service.crear(leerTexto("Título: "));
         System.out.println("Tarea agregada con id " + tarea.getId());
     }
 
     private static void listarTareas() {
-        if (tareas.isEmpty()) {
-            System.out.println("No hay tareas");
-        }
-        List<Tarea> lista = new ArrayList<>(tareas.values());
-        lista.sort((a, b) -> a.getId().compareTo(b.getId()));
-        for (Tarea tarea : lista) {
-            System.out.println(tarea);
-        }
+        mostrar(service.listar());
     }
 
     private static void completarTarea() {
-        long id = leerEntero("Id de la tarea: ");
-        Tarea tarea = tareas.get(id);
-        if (tarea == null) {
-            System.out.println("No existe la tarea " + id);
-        } else {
-            tarea.completar();
-            System.out.println("Tarea completada");
-        }
+        service.completar(leerId());
+        System.out.println("Tarea completada");
     }
 
     private static void eliminarTarea() {
-        long id = leerEntero("Id de la tarea: ");
-        if (tareas.remove(id) == null) {
-            System.out.println("No existe la tarea " + id);
-        } else {
-            System.out.println("Tarea eliminada");
-        }
+        service.eliminar(leerId());
+        System.out.println("Tarea eliminada");
     }
 
     private static void buscarTareas() {
-        String texto = leerTexto("Texto a buscar: ").toLowerCase();
-        List<Tarea> encontradas = new ArrayList<>();
-        for (Tarea tarea : tareas.values()) {
-            if (tarea.getTitulo().toLowerCase().contains(texto)) {
-                encontradas.add(tarea);
-            }
+        mostrar(service.buscar(leerTexto("Texto a buscar: ")));
+    }
+
+    private static void mostrar(List<Tarea> tareas) {
+        if (tareas.isEmpty()) {
+            System.out.println("No hay tareas");
         }
-        if (encontradas.isEmpty()) {
-            System.out.println("No se encontraron tareas");
-        }
-        for (Tarea tarea : encontradas) {
-            System.out.println(tarea);
-        }
+        tareas.forEach(tarea -> System.out.println(tarea));
+    }
+
+    private static Long leerId() {
+        return (long) leerEntero("Id de la tarea: ");
     }
 
     // ------------------------------------------------------------------
