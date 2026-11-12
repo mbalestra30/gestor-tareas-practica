@@ -5,8 +5,8 @@ Vamos a construir el programa de a poco. Cada ejercicio parte del anterior.
 | Ejercicio | Dónde |
 |---|---|
 | 1. El menú | En la charla, juntos |
-| 2. La clase Tarea | En la charla, juntos |
-| 3. Separar en capas | En la charla, juntos |
+| 2. La clase Tarea | En la charla, juntos si da el tiempo. Si no, **de tarea** |
+| 3. Separar en capas | En la charla lo vemos resuelto. Vos lo hacés **de tarea** |
 | 4. Java moderno | **De tarea** |
 | 5. Guardar en un archivo | **De tarea** |
 
@@ -296,6 +296,9 @@ Texto a buscar: git
 ```
 
 **Qué vas a usar:** clases · encapsulamiento · constructores · `toString` · `HashMap` · `ArrayList` · for-each
+
+> Si no llegamos a hacerlo juntos en la charla, queda **de tarea**. Seguí los pasos en orden y corré el
+> programa cada vez que dice **▶ Probalo**.
 
 ### Paso 1: crear la clase Tarea
 
@@ -588,6 +591,9 @@ está organizado el código, no en lo que hace.
 > y en la charla 3, Spring Data la va a implementar solo.
 
 **Qué vas a usar:** interfaces · abstracción · polimorfismo · herencia · excepciones · paquetes
+
+> En la charla vemos este ejercicio **ya resuelto**, en el commit "Ejercicio 3" de la rama `charla1-solucion`.
+> Vos lo hacés **de tarea**, siguiendo estos pasos. Antes de arrancar, terminá el ejercicio 2.
 
 ### Paso 1: la interfaz TareaRepository
 
