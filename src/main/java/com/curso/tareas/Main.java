@@ -1,10 +1,11 @@
 package com.curso.tareas;
 
 import com.curso.tareas.model.Tarea;
-import com.curso.tareas.repository.TareaRepositoryEnMemoria;
+import com.curso.tareas.repository.TareaRepositoryArchivo;
 import com.curso.tareas.service.TareaNoEncontradaException;
 import com.curso.tareas.service.TareaService;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
@@ -27,7 +28,8 @@ public class Main {
 
     private static final Scanner scanner = new Scanner(System.in);
 
-    private static final TareaService service = new TareaService(new TareaRepositoryEnMemoria());
+    private static final TareaService service =
+            new TareaService(new TareaRepositoryArchivo(Path.of("tareas.csv")));
 
     public static void main(String[] args) {
         int opcion;
