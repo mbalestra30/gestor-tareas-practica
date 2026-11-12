@@ -1,31 +1,17 @@
 package com.curso.tareas.model;
 
-public class Tarea {
-
-    private final Long id;
-    private final String titulo;
-    private boolean hecha;
+public record Tarea(Long id, String titulo, boolean hecha) {
 
     public Tarea(Long id, String titulo) {
-        this.id = id;
-        this.titulo = titulo;
-        this.hecha = false;
+        this(id, titulo, false);
     }
 
-    public Long getId() {
-        return id;
+    public Tarea completada() {
+        return new Tarea(id, titulo, true);
     }
 
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public boolean isHecha() {
-        return hecha;
-    }
-
-    public void completar() {
-        hecha = true;
+    public Tarea conId(Long nuevoId) {
+        return new Tarea(nuevoId, titulo, hecha);
     }
 
     @Override

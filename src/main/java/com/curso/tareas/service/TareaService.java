@@ -3,7 +3,6 @@ package com.curso.tareas.service;
 import com.curso.tareas.model.Tarea;
 import com.curso.tareas.repository.TareaRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TareaService {
@@ -31,20 +30,21 @@ public class TareaService {
     }
 
     public List<Tarea> buscar(String texto) {
-        String buscado = texto.toLowerCase();
-        List<Tarea> encontradas = new ArrayList<>();
-        for (Tarea tarea : repository.findAll()) {
-            if (tarea.getTitulo().toLowerCase().contains(buscado)) {
-                encontradas.add(tarea);
-            }
-        }
-        return encontradas;
+        var buscado = texto.toLowerCase();
+        return repository.findAll().stream()
+                .filter(tarea -> tarea.titulo().toLowerCase().contains(buscado))
+                .toList();
+    }
+
+    public List<Tarea> pendientes() {
+        return repository.findAll().stream()
+                .filter(tarea -> !tarea.hecha())
+                .toList();
     }
 
     public Tarea completar(Long id) {
-        Tarea tarea = buscarPorId(id);
-        tarea.completar();
-        return repository.save(tarea);
+        var tarea = buscarPorId(id);
+        return repository.save(tarea.completada());
     }
 
     public void eliminar(Long id) {

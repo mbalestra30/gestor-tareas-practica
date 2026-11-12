@@ -14,6 +14,17 @@ import java.util.Scanner;
  */
 public class Main {
 
+    private static final String MENU = """
+
+            === Gestor de tareas ===
+            1. Agregar tarea
+            2. Listar tareas
+            3. Completar tarea
+            4. Eliminar tarea
+            5. Buscar tareas
+            6. Ver pendientes
+            0. Salir""";
+
     private static final Scanner scanner = new Scanner(System.in);
 
     private static final TareaService service = new TareaService(new TareaRepositoryEnMemoria());
@@ -21,51 +32,28 @@ public class Main {
     public static void main(String[] args) {
         int opcion;
         do {
-            mostrarMenu();
+            System.out.println(MENU);
             opcion = leerEntero("Elegí una opción: ");
             try {
                 switch (opcion) {
-                    case 1:
-                        agregarTarea();
-                        break;
-                    case 2:
-                        listarTareas();
-                        break;
-                    case 3:
-                        completarTarea();
-                        break;
-                    case 4:
-                        eliminarTarea();
-                        break;
-                    case 5:
-                        buscarTareas();
-                        break;
-                    case 0:
-                        System.out.println("¡Hasta luego!");
-                        break;
-                    default:
-                        System.out.println("Opción inválida");
+                    case 1 -> agregarTarea();
+                    case 2 -> listarTareas();
+                    case 3 -> completarTarea();
+                    case 4 -> eliminarTarea();
+                    case 5 -> buscarTareas();
+                    case 6 -> mostrar(service.pendientes());
+                    case 0 -> System.out.println("¡Hasta luego!");
+                    default -> System.out.println("Opción inválida");
                 }
-            } catch (IllegalArgumentException | TareaNoEncontradaException e) {
-                System.out.println(e.getMessage());
+            } catch (RuntimeException e) {
+                mostrarError(e);
             }
         } while (opcion != 0);
     }
 
-    private static void mostrarMenu() {
-        System.out.println();
-        System.out.println("=== Gestor de tareas ===");
-        System.out.println("1. Agregar tarea");
-        System.out.println("2. Listar tareas");
-        System.out.println("3. Completar tarea");
-        System.out.println("4. Eliminar tarea");
-        System.out.println("5. Buscar tareas");
-        System.out.println("0. Salir");
-    }
-
     private static void agregarTarea() {
-        Tarea tarea = service.crear(leerTexto("Título: "));
-        System.out.println("Tarea agregada con id " + tarea.getId());
+        var tarea = service.crear(leerTexto("Título: "));
+        System.out.println("Tarea agregada con id " + tarea.id());
     }
 
     private static void listarTareas() {
@@ -91,6 +79,16 @@ public class Main {
             System.out.println("No hay tareas");
         }
         tareas.forEach(tarea -> System.out.println(tarea));
+    }
+
+    private static void mostrarError(RuntimeException e) {
+        if (e instanceof TareaNoEncontradaException noEncontrada) {
+            System.out.println("No existe la tarea " + noEncontrada.getId() + ". Revisá la lista con la opción 2.");
+        } else if (e instanceof IllegalArgumentException) {
+            System.out.println(e.getMessage());
+        } else {
+            throw e;
+        }
     }
 
     private static Long leerId() {

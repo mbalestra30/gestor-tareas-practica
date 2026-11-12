@@ -16,7 +16,7 @@ public class TareaRepositoryEnMemoria implements TareaRepository {
     @Override
     public List<Tarea> findAll() {
         List<Tarea> lista = new ArrayList<>(tareas.values());
-        lista.sort((a, b) -> a.getId().compareTo(b.getId()));
+        lista.sort((a, b) -> a.id().compareTo(b.id()));
         return lista;
     }
 
@@ -27,11 +27,11 @@ public class TareaRepositoryEnMemoria implements TareaRepository {
 
     @Override
     public Tarea save(Tarea tarea) {
-        if (tarea.getId() == null) {
-            tarea = new Tarea(proximoId, tarea.getTitulo());
+        if (tarea.id() == null) {
+            tarea = tarea.conId(proximoId);
             proximoId++;
         }
-        tareas.put(tarea.getId(), tarea);
+        tareas.put(tarea.id(), tarea);
         return tarea;
     }
 
